@@ -204,6 +204,17 @@ html.cerrada{overflow:hidden}
 .visor[open]{animation:pop .35s cubic-bezier(.2,.7,.2,1)}
 @keyframes pop{from{opacity:0;transform:scale(.92) rotate(-2deg)}}
 
+/* ---------- canción de fondo ---------- */
+.disco[hidden]{display:none}
+.disco{position:fixed;z-index:6;left:max(16px,env(safe-area-inset-left,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));
+  display:flex;align-items:center;gap:10px;padding:7px 16px 7px 7px;border:0;border-radius:999px;cursor:pointer;
+  background:var(--print);color:var(--ink);box-shadow:0 10px 24px -12px rgba(30,58,43,.6);font:italic 600 15px/1 var(--f-display)}
+.disco .vinilo{width:30px;height:30px;border-radius:50%;flex:none;
+  background:radial-gradient(circle,var(--verde-claro) 0 5px,#183326 5.5px 7px,#22402F 7.5px 9px,#183326 9.5px 11px,#22402F 11.5px 13px,#183326 13.5px)}
+.disco.sonando .vinilo{animation:girar 3s linear infinite}
+.disco small{display:block;font:400 12px/1.2 var(--f-body);font-style:normal;color:var(--ink-soft);margin-top:3px}
+@keyframes girar{to{transform:rotate(360deg)}}
+
 /* ---------- indicador de compás ---------- */
 .rail{position:fixed;left:max(18px,env(safe-area-inset-left,0px));top:20vh;height:60vh;width:41px;z-index:5;pointer-events:none;
   background:repeating-linear-gradient(to right,var(--ink) 0 1px,transparent 1px 10px);opacity:.28}
@@ -310,6 +321,9 @@ html.cerrada{overflow:hidden}
   <figure><img id="visor-img" alt=""><figcaption id="visor-cap"></figcaption></figure>
   <button class="visor-x" id="visor-x" type="button" aria-label="Cerrar foto">×</button>
 </dialog>
+
+<audio id="cancion" src="https://pub-429547da69084246967c27a704512fc3.r2.dev/coincidir.mp3" preload="auto" loop></audio>
+<button class="disco" id="disco" type="button" aria-pressed="false" hidden><span class="vinilo" aria-hidden="true"></span><span><span id="disco-estado">Pausar</span><small>Coincidir · Macaco</small></span></button>
 
 <div class="rail" aria-hidden="true"><span class="rail-note">♩</span></div>
 <div class="chip" id="chip" aria-hidden="true">compás <b>1</b></div>
@@ -463,7 +477,7 @@ html.cerrada{overflow:hidden}
       <header class="mark reveal"><span class="reh">E</span><span class="bar">compás 33</span><span class="dyn">f</span><span class="tempo-w">brillante</span></header>
       <div class="sys-body">
         <div class="prints pair" data-speed="0.06">
-          <figure class="print" style="--r:-3deg"><img src="https://pub-429547da69084246967c27a704512fc3.r2.dev/10-playa.jpg" width="1280" height="960" loading="lazy" alt="Selfie sonriendo bajo una cabaña de caña en la playa"><figcaption>sonrisas de playa</figcaption></figure>
+          <figure class="print" style="--r:-3deg"><img src="https://pub-429547da69084246967c27a704512fc3.r2.dev/10-playa.jpg" width="1280" height="960" loading="lazy" alt="Selfie sonriendo bajo una cabaña de caña en la playa"><figcaption>sonrisas en donde caga el diablo</figcaption></figure>
           <figure class="print" style="--r:4deg"><img src="https://pub-429547da69084246967c27a704512fc3.r2.dev/11-bengalas.jpg" width="960" height="1280" loading="lazy" alt="Los dos sonriendo con bengalas encendidas en la mano"><figcaption>chispitas</figcaption></figure>
         </div>
         <div class="sys-text reveal"><h3>Con sol o con bengalas, <em>bb chiquisbeiby</em>, tú brillas más</h3></div>
@@ -501,7 +515,7 @@ html.cerrada{overflow:hidden}
       <header class="mark reveal"><span class="reh">G</span><span class="bar">compás 49</span><span class="dyn">fff</span><span class="tempo-w">fortissimo</span></header>
       <div class="sys-body">
         <div class="prints pair" data-speed="0.06">
-          <figure class="print" style="--r:-4deg"><img src="https://pub-429547da69084246967c27a704512fc3.r2.dev/13-torta.jpg" width="960" height="1280" loading="lazy" alt="Sentados en el césped del malecón de noche, ella sostiene una torta"><figcaption>que vengan muchas tortas más</figcaption></figure>
+          <figure class="print" style="--r:-4deg"><img src="https://pub-429547da69084246967c27a704512fc3.r2.dev/13-torta.jpg" width="960" height="1280" loading="lazy" alt="Sentados en el césped del malecón de noche, ella sostiene una torta"><figcaption>compactados y tímidos</figcaption></figure>
           <figure class="print" style="--r:3deg"><img src="https://pub-429547da69084246967c27a704512fc3.r2.dev/14-fiesta.jpg" width="960" height="1280" loading="lazy" alt="Selfie en una fiesta, ella de rojo sacando la lengua y él detrás"><figcaption>mi polola loquita</figcaption></figure>
         </div>
         <div class="sys-text reveal"><h3>Que vengan muchos cumpleaños más contigo, <em>polola</em></h3></div>
@@ -563,7 +577,13 @@ html.cerrada{overflow:hidden}
   const sobre = document.getElementById('sobre'), abrir = document.getElementById('abrir');
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   sobre.hidden = false; root.classList.add('cerrada');
+  const cancion = document.getElementById('cancion'), disco = document.getElementById('disco'), discoTxt = document.getElementById('disco-estado');
+  const marcar = () => { const on = !cancion.paused; disco.classList.toggle('sonando', on); disco.setAttribute('aria-pressed', on); discoTxt.textContent = on ? 'Pausar' : 'Escuchar'; };
+  cancion.addEventListener('play', marcar); cancion.addEventListener('pause', marcar);
+  disco.addEventListener('click', () => cancion.paused ? cancion.play().catch(() => {}) : cancion.pause());
   abrir.addEventListener('click', () => {
+    cancion.play().catch(() => {}); // el toque en el sobre cuenta como interacción: el navegador deja sonar
+    disco.hidden = false; marcar();
     scrollTo(0, 0);
     sobre.classList.add('abierto');
     setTimeout(() => { root.classList.remove('cerrada'); root.classList.add('listo'); }, reduce ? 0 : 900);
@@ -651,8 +671,9 @@ html.cerrada{overflow:hidden}
       setTimeout(volar, delay);
       t += dur * beat;
     }
+    const seguia = !cancion.paused; cancion.pause(); // ponytail: pausa en vez de bajar volumen (iOS no deja cambiar volumen)
     btn.disabled = true; btn.textContent = '♪ sonando…';
-    setTimeout(() => { btn.disabled = false; btn.textContent = '♪ Otra vez'; }, (t - ctx.currentTime) * 1000 + 600);
+    setTimeout(() => { btn.disabled = false; btn.textContent = '♪ Otra vez'; if (seguia) cancion.play().catch(() => {}); }, (t - ctx.currentTime) * 1000 + 600);
   });
   const fin = document.getElementById('final');
   function volar() {
